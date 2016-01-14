@@ -13,46 +13,89 @@ angular.module('Q.controllers', [
   window.socket.emit('newGuest');
   // include template for fb share button
  $scope.fbShare = $sce.trustAsHtml('<div><button class="btn btn-success">Share playlist with Facebook friends</button></div> ');
- 
+ $scope.spotifyResponse = [];
 
-$scope.searchSong = function (){
-    $rootScope.songs= [];
-    if($scope.query === ''){
-      return;
-    } else{
-      return Playlist.searchSongs($scope.query).then(function(tracks){
-        console.log(tracks)
-        for(var i = 0;i<tracks.length;i++){
-          console.log(tracks[i].artwork_url)
-          var track = {
-                            id: tracks[i].id,
-                            title: tracks[i].title,
-                            artist: tracks[i].user.permalink,
-                            url: tracks[i].stream_url + "?client_id=f270bdc572dc8380259d38d8015bdbe7",
-                            waveform: tracks[i].waveform_url
-                        };
-          if(tracks[i].artwork_url === null){
-              track.image = '../img/notavailable.png';
+$scope.searchSong = function (isSpotify){
+    if (isSpotify) {
+      // call the spotify api 
+      Playlist.searchSpotifyTracks($scope.query)
+        .then(function(resp) {      
+          //console.log(resp);    
+          if (resp === 'empty') {
+            console.log('nono');
+            $scope.spotifyResponse[0] = {};
+            $scope.spotifyResponse[0].title = "please enter a search";
+            $scope.spotifyResponse[0].artist = "YOU";
           } else {
-              track.image = tracks[i].artwork_url
-          }
-          $rootScope.$apply(function(){
-            $rootScope.songs.push(track);
-          })
-        }
-      })
+            console.log(resp);
+            var spotifyResponseSongs = resp.data.tracks.items;          
+            for (var i = 0; i < spotifyResponseSongs.length; i++) {
+              $scope.spotifyResponse[i] = {};
+              $scope.spotifyResponse[i]['artist'] = spotifyResponseSongs[i].artists[0].name;
+              $scope.spotifyResponse[i]['title'] = spotifyResponseSongs[i].name;
+              $scope.spotifyResponse[i]['id'] = spotifyResponseSongs[i].id;
+              $scope.spotifyResponse[i]['play_url'] = spotifyResponseSongs[i].external_urls.spotify;
+              $scope.spotifyResponse[i]['popularity'] = spotifyResponseSongs[i].popularity;
+              $scope.spotifyResponse[i]['duration'] = spotifyResponseSongs[i].duration_ms;
 
+            }     
+            console.log($scope.spotifyResponse);
+          }
+        })      
+
+      // show the results in the dropdown list dealie
+
+      // selection adds to the playlist
+
+    } else {
+      // else do soundclound search
+      $rootScope.songs= [];
+      if($scope.query === ''){
+        return;
+      } else{
+        return Playlist.searchSongs($scope.query).then(function(tracks){
+          console.log(tracks)
+          for(var i = 0;i<tracks.length;i++){
+            console.log(tracks[i].artwork_url)
+            var track = {
+                              id: tracks[i].id,
+                              title: tracks[i].title,
+                              artist: tracks[i].user.permalink,
+                              url: tracks[i].stream_url + "?client_id=f270bdc572dc8380259d38d8015bdbe7",
+                              waveform: tracks[i].waveform_url
+                          };
+            if(tracks[i].artwork_url === null){
+                track.image = '../img/notavailable.png';
+            } else {
+                track.image = tracks[i].artwork_url
+            }
+            $rootScope.$apply(function(){
+              $rootScope.songs.push(track);
+            })
+          }
+        })
+
+      }
     }
 
   }
 
-  $scope.clearResults = function (){
+  $scope.clearResults = function (){    
     $scope.query = '';
     $rootScope.songs = [];
+  }
+  $scope.clearSpotify = function() {
+    console.log('clearing');
+    $scope.query = '';
+    $('.spotifyResults').hide();
   }
 
   $scope.isHost = function(){
       return Playlist.isHost();
+  }
+  // show the spotify stuff is that was selected
+  $scope.isSpotify = function(){      
+      return Playlist.isSpotify();
   }
 
   $scope.clearResults = function (){

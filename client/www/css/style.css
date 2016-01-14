@@ -114,6 +114,10 @@ img.small {
 .marquee p:nth-child(1) {
     -webkit-animation: up 2s forwards, across 35s 5000ms linear infinite;
 }
+.spotifyResults {
+  margin: 35px 10px 20px 30px;
+  padding-left: 30px;
+}
 
 .list-inset li {
   list-style-type: none;

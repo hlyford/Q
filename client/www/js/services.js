@@ -32,6 +32,15 @@ angular.module('Q.services', [
       return tracks;
     });
   }
+  var searchSpotifyTracks = function (query) {    
+    if (query === '') {      
+      return 'empty'
+    }
+    return $http ({
+      method: 'GET',
+      url: 'https://api.spotify.com/v1/search?type=track&limit=10&market=US&q=' + query      
+    })
+  }
 
   // isHostData in factory stores whether or not
   // the current user is the host
@@ -40,6 +49,10 @@ angular.module('Q.services', [
 
   var isHost = function(){
     return isHostData;
+  }
+  var isSpotify = function(){
+    // change to be dynamic when we take this input
+    return false;
   }
 
   var makeHost = function () {
@@ -56,6 +69,8 @@ angular.module('Q.services', [
     searchSongs: searchSongs,
     makeHost: makeHost,
     makeGuest: makeGuest,
-    isHost: isHost
+    isHost: isHost,
+    isSpotify: isSpotify,
+    searchSpotifyTracks: searchSpotifyTracks
   }
 })
